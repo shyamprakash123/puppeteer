@@ -7,6 +7,8 @@ const PORT = process.env.PORT || 3000 ;
 app.get('/', async(req,res) => {
     first=req.query.first,
     second=req.query.second
+    let toll="null"
+    let tol=0
     const browser = await puppeteer.launch({
         headless: true,
         args: ['--no-sandbox', '--disable-gpu', '--enable-webgl', '--disable-setuid-sandbox']
@@ -27,6 +29,15 @@ app.get('/', async(req,res) => {
  let [elemen] = await page.$x('//*[@id="section-directions-trip-0"]/div[1]/div[1]/div[1]/div[1]/span[1]');
  let min = await page.evaluate(element => element.textContent, elemen); 
  min= min.trim(); 
+ try{
+   // await page.waitForXPath('//*[@id="section-directions-trip-0"]/div[1]/div[1]/div[3]/ul/li/div/h6');
+    let [elemen] = await page.$x('//*[@id="section-directions-trip-0"]/div[1]/div[1]/div[3]/ul/li/div/h6');
+    toll = await page.evaluate(element => element.textContent, elemen); 
+    toll= toll.trim();
+    if(toll == "This route has tolls."){
+        tol = 1
+    }
+}catch{}
   try{ 
  //await page.waitForXPath('//*[@id="section-directions-trip-1"]/div[1]/div[1]/div[1]/div[2]/div');
  let [eleme] = await page.$x('//*[@id="section-directions-trip-1"]/div[1]/div[1]/div[1]/div[2]/div');
@@ -39,7 +50,8 @@ app.get('/', async(req,res) => {
  let ress = {KM: km,
     MIN: min,
     KM2: km2,
-    MIN2: min2         
+    MIN2: min2,
+    Toll: tol
 
 
 };
@@ -49,7 +61,9 @@ res.send(JSON.stringify(ress));
     let ress = {KM: km,
         MIN: min,
         KM2: "null",
-        MIN2: "null"  };
+        MIN2: "null",
+        Toll: tol
+        };
         await browser.close();
       res.send(JSON.stringify(ress)); 
  }
